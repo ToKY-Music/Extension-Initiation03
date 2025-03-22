@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>外延ネットワークシミュレーション01</title>
+    <style>
+        body { margin: 0; background: black; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        class Node {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 5;
+                this.growthRate = Math.random() * 0.5 + 0.5;
+                this.children = [];
+            }
+
+            grow() {
+                if (this.radius < 40) {
+                    this.radius += this.growthRate;
+                } else if (Math.random() < 0.04) { // 半径40以上なら4%の確率で新しい開始点を生む
+                    this.spawnChild();
+                }
+            }
+
+            spawnChild() {
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 30;
+                const newX = this.x + Math.cos(angle) * distance;
+                const newY = this.y + Math.sin(angle) * distance;
+                const newNode = new Node(newX, newY);
+                this.children.push(newNode);
+                nodes.push(newNode);
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `hsl(${this.radius * 5}, 100%, 70%)`;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        let nodes = [new Node(canvas.width / 2, canvas.height / 2)];
+        const minObjects = 5;
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            nodes.forEach(node => node.grow());
+            nodes.forEach(node => node.draw());
+            nodes = nodes.filter(node => node.radius < 50); // 大きくなりすぎたノードは削除
+
+            // 外延が一定数以下なら新しい開始点を追加
+            if (nodes.length < minObjects) {
+                nodes.push(new Node(Math.random() * canvas.width, Math.random() * canvas.height));
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
